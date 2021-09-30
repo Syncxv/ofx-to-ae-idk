@@ -7,6 +7,28 @@
     var OFX = new Folder(location);
     var dropdown;
     var applyBtn;
+    function getNames(xmlData) {
+        var test = xmlData.match(/name="\S.*"><.*/gm);
+        var bruh = [];
+        for (var g = 0; g < test.length; ++g) {
+            var item = test[g];
+            var name = item.match(/"\S.*"/gm)[0].replace(/"/g, "");
+            //<\/|OfxParamValue>
+            var value = item
+                .match(/<OfxParamValue>.*<\/OfxParamValue>/gm)[0]
+                .replace(/<\/.*|.OfxParamValue>/gm, "");
+            bruh.push({ name: name, value: value });
+        }
+        return bruh;
+    }
+    function getRealValue(value) {
+        if (isNaN(value)) {
+            return value === "true" ? true : value === "false" ? false : value;
+        }
+        else {
+            return Number(value);
+        }
+    }
     function getFoldersRecursive(folder) {
         var files = folder.getFiles(), editFolders = [], folder;
         for (var i = 0; i < files.length; i++) {
@@ -32,11 +54,11 @@
         applyBtn = groupTwo.add("button", undefined, "Get Presets");
         applyBtn.onClick = function () {
             if (app.project.activeItem instanceof CompItem) {
-                var effect = app.project.activeItem.selectedProperties[0];
+                var effect_1 = app.project.activeItem.selectedProperties[0];
                 // alert(effect.name);
                 var ofxFolders = getFoldersRecursive(OFX);
                 for (var i = 0; i < ofxFolders.length; ++i) {
-                    if (ofxFolders[i].name.split(".").pop() === effect.name) {
+                    if (ofxFolders[i].name.split(".").pop() === effect_1.name) {
                         alert("FOUND EFFECT: " +
                             ofxFolders[i].name +
                             " OK now checking for presets");
@@ -53,7 +75,7 @@
                                 presets.push(xmlFiles[j]);
                                 presetNames.push(xmlFiles[j].name);
                             }
-                            var g = groupTwo.add("panel", undefined, effect.name); //Add a group
+                            var g = groupTwo.add("panel", undefined, effect_1.name); //Add a group
                             g.orientation = "row";
                             var dropdownpresets = g.add("dropdownlist", undefined, presetNames);
                             g.add("button", undefined, "Apply").onClick = function () {
@@ -62,8 +84,32 @@
                                     alert(file.name);
                                     file.open("r");
                                     var data = file.read();
-                                    alert(data);
+                                    var realData = getNames(data);
                                     file.close();
+                                    for (var sh = 0; sh < realData.length; sh++) {
+                                        var item = realData[sh];
+                                        if (item.name === "Start") {
+                                            item.name = "Start XY";
+                                            item.value = item.value.split(' ');
+                                        }
+                                        else if (item.name === "End") {
+                                            item.name = "End XY",
+                                                item.value = item.value.split(' ');
+                                        }
+                                        else if (item.name === "Start Color") {
+                                            item.value = item.value.split(' ');
+                                        }
+                                        else if (item.name === "End Color") {
+                                            item.value = item.value.split(' ');
+                                        }
+                                        else if (effect_1.property(item.name)) {
+                                            if (Object.prototype.toString.call(item.value) === '[object Array]') {
+                                                effect_1.property(item.name).setValue(item.value);
+                                                continue;
+                                            }
+                                            effect_1.property(item.name).setValue(getRealValue(item.value));
+                                        }
+                                    }
                                 }
                             };
                             g.layout.layout(true);

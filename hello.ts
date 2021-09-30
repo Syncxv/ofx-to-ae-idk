@@ -7,6 +7,27 @@
   var OFX = new Folder(location);
   var dropdown;
   var applyBtn;
+  function getNames(xmlData) {
+    var test = xmlData.match(/name="\S.*"><.*/gm);
+    var bruh = [];
+    for (var g = 0; g < test.length; ++g) {
+      var item = test[g];
+      var name = item.match(/"\S.*"/gm)[0].replace(/"/g, "");
+      //<\/|OfxParamValue>
+      var value = item
+        .match(/<OfxParamValue>.*<\/OfxParamValue>/gm)[0]
+        .replace(/<\/.*|.OfxParamValue>/gm, "");
+      bruh.push({ name, value });
+    }
+    return bruh;
+  }
+  function getRealValue(value: string) {
+    if(isNaN(value)) {
+      return value === "true" ? true : value === "false" ? false : value 
+    } else {
+      return Number(value)
+    }
+  }
   function getFoldersRecursive(folder) {
     var files = folder.getFiles(),
       editFolders = [],
@@ -77,8 +98,32 @@
                   alert(file.name);
                   file.open("r");
                   var data = file.read();
-                  alert(data);
+                  var realData = getNames(data);
                   file.close();
+                  for (var sh = 0; sh < realData.length; sh++) {
+                    var item = realData[sh];
+                    if(item.name === "Start") {
+                      item.name = "Start XY"
+                      item.value = item.value.split(' ')
+                    }
+                    else if(item.name === "End") {
+                      item.name = "End XY",
+                      item.value = item.value.split(' ')
+                    }
+                    else if(item.name === "Start Color") {
+                      item.value = item.value.split(' ')
+                    }
+                    else if(item.name === "End Color") {
+                      item.value = item.value.split(' ')
+                    }
+                    else if (effect.property(item.name)) {
+                      if(Object.prototype.toString.call(item.value) === '[object Array]') {
+                        effect.property(item.name).setValue(item.value);
+                        continue
+                      }
+                      effect.property(item.name).setValue(getRealValue(item.value))
+                    }
+                  }
                 }
               };
               g.layout.layout(true);
