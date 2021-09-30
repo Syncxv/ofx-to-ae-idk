@@ -36,7 +36,7 @@
 
     var groupTwo: Group = win.add("group", undefined, "GroupOne");
     groupTwo.orientation = "column";
-    applyBtn = groupTwo.add("button", undefined, "Apply");
+    applyBtn = groupTwo.add("button", undefined, "Get Presets");
 
     applyBtn.onClick = function () {
       if (app.project.activeItem instanceof CompItem) {
@@ -55,20 +55,32 @@
               const xmlFiles = filterFolder.getFiles();
               if (xmlFiles.length < 1) {
                 alert(ofxFolders[i].name + " has no presets");
+                return;
               }
               var presets = [];
+              var presetNames = [];
               for (var j = 0; j < xmlFiles.length; ++j) {
                 presets.push(xmlFiles[j]);
+                presetNames.push(xmlFiles[j].name);
               }
               var g = groupTwo.add("panel", undefined, effect.name); //Add a group
 
               g.orientation = "row";
-              for (var k = 0; k < presets.length; ++k) {
-                var t = g.add("button", undefined, presets[k].name);
-                t.onClick = function () {
-                  alert(presets[k].name);
-                };
-              }
+              var dropdownpresets = g.add(
+                "dropdownlist",
+                undefined,
+                presetNames
+              );
+              g.add("button", undefined, "Apply").onClick = function () {
+                if (dropdownpresets.selection instanceof ListItem) {
+                  var file = presets[dropdownpresets.selection.index];
+                  alert(file.name);
+                  file.open("r");
+                  var data = file.read();
+                  alert(data);
+                  file.close();
+                }
+              };
               g.layout.layout(true);
               win.layout.layout(true);
             }
