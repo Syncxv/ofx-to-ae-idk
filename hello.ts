@@ -2,6 +2,7 @@
 	Adobe-script-runner './hello.js'
 	Executes file between quotes rather than the one in the active viewer.
 */
+//@include "./utils/map.js"
 (function (thisObj) {
   var location = "C:\\Users\\USER\\Documents\\OFX Presets";
   var OFX = new Folder(location);
