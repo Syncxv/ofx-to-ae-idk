@@ -45,17 +45,12 @@
   }
 
   function expressionPanel(thisObj) {
-    var list = ["none"];
+    var dropdowns = {}
     var win =
       thisObj instanceof Panel
         ? thisObj
-        : new Window("palette", "Expression Script", undefined);
+        : new Window("palette", "Ofx Presets", undefined);
     win.spacing = 5;
-
-    var groupOne: Group = win.add("group", undefined, "GroupTwo");
-    groupOne.orientation = "column";
-    dropdown = groupOne.add("dropdownlist", undefined, list);
-
     var groupTwo: Group = win.add("group", undefined, "GroupOne");
     groupTwo.orientation = "column";
     applyBtn = groupTwo.add("button", undefined, "Get Presets");
@@ -63,6 +58,9 @@
     applyBtn.onClick = function () {
       if (app.project.activeItem instanceof CompItem) {
         const effect = app.project.activeItem.selectedProperties[0];
+        if(!effect) {
+          return alert('bro you need to select a effect')
+        }
         // alert(effect.name);
         var ofxFolders: Array<Folder> = getFoldersRecursive(OFX);
         for (var i = 0; i < ofxFolders.length; ++i) {
